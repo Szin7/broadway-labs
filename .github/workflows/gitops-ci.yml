@@ -58,3 +58,36 @@ jobs:
             -f day1/web/Dockerfile \
             -t broadway-day1-flask:ci \
             day1/web
+
+  publish-flask:
+    name: Publish Flask image to GHCR
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate-kubernetes, docker-build]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./day1/web
+          file: ./day1/web/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/szin7/broadway-day1-flask:latest
+            ghcr.io/szin7/broadway-day1-flask:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/Szin7/broadway-labs
