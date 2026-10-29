@@ -35,6 +35,7 @@ jobs:
             day10/kubernetes/k8s_file/postgres-deployment.yaml \
             day10/kubernetes/k8s_file/postgres-service.yaml \
             day10/kubernetes/k8s_file/ingress.yaml
+flask-gitops/manifests/*.yaml
 
   docker-build:
     name: Build Day 1 Flask image
@@ -66,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
@@ -91,3 +92,43 @@ jobs:
             ghcr.io/szin7/broadway-day1-flask:${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/Szin7/broadway-labs
+
+      - name: Update GitOps manifest with published image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          path = Path("flask-gitops/manifests/flask-deployment.yaml")
+          original = path.read_text()
+          image = "ghcr.io/szin7/broadway-day1-flask:" + os.environ["IMAGE_TAG"]
+
+          updated, count = re.subn(
+              r"(?m)^([ \t]*image:[ \t]*)ghcr\.io/szin7/broadway-day1-flask:[^\r\n]+",
+              lambda match: match.group(1) + image,
+              original,
+          )
+
+          if count != 1:
+              raise SystemExit(f"Expected one Flask image; found {count}")
+
+          path.write_text(updated)
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add flask-gitops/manifests/flask-deployment.yaml
+
+          if git diff --cached --quiet; then
+            echo "Image tag already matches."
+            exit 0
+          fi
+
+          git commit -m "ci: deploy Flask image ${IMAGE_TAG}"
+          git push origin HEAD:main
