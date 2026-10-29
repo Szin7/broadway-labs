@@ -46,6 +46,11 @@ jobs:
 
       - name: Check Python syntax
         run: python3 -m py_compile day1/web/app.py
+      - name: Run Flask unit tests
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r day1/web/requirements.txt
+          .venv/bin/python -m unittest discover -s day1/web -p 'test_*.py' -v
 
       - name: Build Docker image
         run: |
