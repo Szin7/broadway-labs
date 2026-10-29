@@ -1,0 +1,55 @@
+
+name: GitOps CI - Validate and Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-kubernetes:
+    name: Validate Kubernetes manifests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Kubeconform
+        run: |
+          curl -fsSL -o /tmp/kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.7.0/kubeconform-linux-amd64.tar.gz
+          tar -xzf /tmp/kubeconform.tar.gz kubeconform
+          sudo install kubeconform /usr/local/bin/kubeconform
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeconform -strict -summary \
+            day10/kubernetes/k8s_file/django-deployment.yaml \
+            day10/kubernetes/k8s_file/django-service.yaml \
+            day10/kubernetes/k8s_file/postgres-deployment.yaml \
+            day10/kubernetes/k8s_file/postgres-service.yaml \
+            day10/kubernetes/k8s_file/ingress.yaml
+
+  docker-build:
+    name: Build Day 1 Flask image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Python syntax
+        run: python3 -m py_compile day1/web/app.py
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f day1/web/Dockerfile \
+            -t broadway-day1-flask:ci \
+            day1/web

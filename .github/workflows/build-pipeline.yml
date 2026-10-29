@@ -1,10 +1,7 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "main", "devops-2" ]
-  pull_request:
-    branches: [ "main", "devops-2" ]
+  workflow_dispatch:
 
 env: 
   AWS_REGION: ap-south-1 
