@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: flask
-          image: ghcr.io/szin7/broadway-day1-flask:294f934f0b3e427f124650c7340478cbf8225825
+          image: ghcr.io/szin7/broadway-day1-flask:d8aacf4e4298fe9c1690de841ac2f70fbb997014
           imagePullPolicy: Always
           ports:
             - containerPort: 5000
