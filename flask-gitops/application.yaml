@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flask-gitops
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Szin7/broadway-labs.git
+    targetRevision: main
+    path: flask-gitops/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flask-gitops
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
