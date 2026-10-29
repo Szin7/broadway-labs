@@ -34,8 +34,8 @@ jobs:
             day10/kubernetes/k8s_file/django-service.yaml \
             day10/kubernetes/k8s_file/postgres-deployment.yaml \
             day10/kubernetes/k8s_file/postgres-service.yaml \
-            day10/kubernetes/k8s_file/ingress.yaml
-flask-gitops/manifests/*.yaml
+            day10/kubernetes/k8s_file/ingress.yaml \
+            flask-gitops/manifests/*.yaml
 
   docker-build:
     name: Build Day 1 Flask image
